@@ -4,17 +4,28 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/translate"
 )
 
-func TranslateFunc() {
-	InputText := "日本語だよ!こっちは英語"
+// Responseの構造体を作成
+type Response struct {
+	StatusCode int    `json:"statusCode"`
+	Body       string `json:"body"`
+}
+
+var OutputText string
+
+func TranslateFunc(req events.APIGatewayProxyRequest) (Response, error) {
+	InputText := req.QueryStringParameters["InputText"]
 	InputLang := "ja"
 	OutputLang := "en"
 	sess := session.Must(session.NewSession())
 	trans := translate.New(sess)
+
+	log.Println(InputText + "これです")
 
 	result, err := trans.Text(&translate.TextInput{
 		SourceLanguageCode: aws.String(InputLang),
@@ -25,5 +36,12 @@ func TranslateFunc() {
 		log.Print("おかしいぜ")
 	}
 
-	fmt.Println(*result.TranslatedText)
+	OutputText := *result.TranslatedText
+
+	fmt.Println(OutputText + "わーい")
+
+	return Response{
+		StatusCode: 200,
+		Body:       OutputText,
+	}, nil
 }
