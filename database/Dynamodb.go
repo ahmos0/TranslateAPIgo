@@ -20,6 +20,8 @@ func OperateDB(InputText string, OutputText string) {
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		SharedConfigState: session.SharedConfigEnable,
 	}))
+	fmt.Println(InputText)
+	fmt.Println(OutputText)
 	dynamo := dynamodb.New(sess)
 
 	t := time.Now()
@@ -42,4 +44,5 @@ func OperateDB(InputText string, OutputText string) {
 	if err != nil {
 		fmt.Println(err.Error())
 	}
+
 }
