@@ -3,15 +3,13 @@ package main
 import (
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/ahmos0/goLambdaFirst.git/Testgreeting"
+	"github.com/ahmos0/goLambdaFirst.git/database"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/aws/aws-sdk-go/service/translate"
 )
 
@@ -35,10 +33,7 @@ func ExucuteFunc(request events.APIGatewayProxyRequest) (Response, error) {
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		SharedConfigState: session.SharedConfigEnable,
 	}))
-	sessi := session.Must(session.NewSessionWithOptions(session.Options{
-		SharedConfigState: session.SharedConfigEnable,
-	}))
-	dynamo := dynamodb.New(sessi)
+
 	trans := translate.New(sess)
 
 	log.Println(InputText + "これです")
@@ -55,27 +50,7 @@ func ExucuteFunc(request events.APIGatewayProxyRequest) (Response, error) {
 	OutputText := *result.TranslatedText
 
 	fmt.Println(OutputText + "わーい")
-
-	t := time.Now()
-	item := Item{
-		TimeStamp:   *aws.String(t.String()),
-		InputTextj:  *aws.String(InputText),
-		OutputTextj: *aws.String(OutputText),
-	}
-	av, err := dynamodbattribute.MarshalMap(item)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-	tableName := "translate-history"
-	input := &dynamodb.PutItemInput{
-		TableName: aws.String(tableName),
-		Item:      av,
-	}
-
-	_, err = dynamo.PutItem(input)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
+	database.OperateDB(InputText, OutputText)
 
 	return Response{
 		StatusCode: 200,
